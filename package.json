@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "cap:sync:ios": "npx cap sync ios",
-    "assets": "npx @capacitor/assets generate --icon resources/icon.png --ios",
+    "assets": "npx @capacitor/assets generate --ios",
     "prepare": "npm run assets && npx cap sync ios"
   },
   "devDependencies": {
