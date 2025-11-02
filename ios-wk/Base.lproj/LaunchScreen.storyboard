@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21507" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES">
+    <scenes>
+        <!--Launch Screen-->
+        <scene sceneID="LS1">
+            <objects>
+                <viewController id="VC1" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="VIEW1">
+                        <rect key="frame" x="0.0" y="0.0" width="390" height="844"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" image="AppIcon" id="IMG1"/>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="IMG1" firstAttribute="centerX" secondItem="VIEW1" secondAttribute="centerX" id="c1"/>
+                            <constraint firstItem="IMG1" firstAttribute="centerY" secondItem="VIEW1" secondAttribute="centerY" id="c2"/>
+                            <constraint firstItem="IMG1" firstAttribute="width" relation="lessThanOrEqual" constant="180" id="c3"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FR1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="AppIcon" width="1024" height="1024"/>
+    </resources>
+</document>
