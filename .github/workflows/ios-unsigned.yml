@@ -26,11 +26,12 @@ jobs:
           npx @capacitor/assets generate --ios
           npx cap sync ios
 
-      - name: Install CocoaPods
+      # Capacitor v6 использует Swift Package Manager.
+      # Явно резолвим пакеты, чтобы Xcode видел модуль 'Capacitor'.
+      - name: Resolve Swift Packages
         working-directory: ios/App
         run: |
-          pod repo update
-          pod install
+          xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App
 
       - name: Patch Info.plist (ATS + URL schemes)
         run: |
@@ -47,9 +48,10 @@ jobs:
         working-directory: ios/App
         run: |
           xcodebuild \
+            -project App.xcodeproj \
             -scheme App \
             -configuration Release \
-            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             build
