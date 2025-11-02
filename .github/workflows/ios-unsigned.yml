@@ -22,8 +22,8 @@ jobs:
 
       - name: Generate iOS project and assets
         run: |
-          npx cap add ios || true
-          npm run assets
+          npx cap add ios
+          npx @capacitor/assets generate --ios
           npx cap sync ios
 
       - name: Patch Info.plist (ATS + URL schemes)
