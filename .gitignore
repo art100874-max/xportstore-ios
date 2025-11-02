@@ -1,0 +1,6 @@
+node_modules
+build
+ios/App/build
+ios/App/Pods
+*.xcworkspace/xcuserdata
+DerivedData
