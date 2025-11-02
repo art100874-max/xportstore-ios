@@ -1,0 +1,50 @@
+name: iOS WKWebView IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          brew install xcodegen
+          mkdir -p ios-wk/Sources ios-wk/Assets.xcassets ios-wk/Base.lproj
+
+      - name: Generate Xcode project
+        working-directory: ios-wk
+        run: xcodegen generate
+
+      - name: Build .app (no code signing)
+        working-directory: ios-wk
+        run: |
+          xcodebuild \
+            -scheme XPortStore \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | xcpretty
+          du -sh build/Build/Products/Release-iphoneos/XPortStore.app || true
+
+      - name: Create unsigned .ipa
+        run: |
+          APP_PATH="ios-wk/build/Build/Products/Release-iphoneos/XPortStore.app"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r XPortStore-WK.ipa Payload >/dev/null
+          rm -rf Payload
+          du -h XPortStore-WK.ipa || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: XPortStore-WK-ipa
+          path: XPortStore-WK.ipa
+          retention-days: 14
