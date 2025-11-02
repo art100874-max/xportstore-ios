@@ -1,0 +1,64 @@
+name: iOS unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Generate iOS project and assets
+        run: |
+          npx cap add ios || true
+          npm run assets
+          npx cap sync ios
+
+      - name: Patch Info.plist (ATS + URL schemes)
+        run: |
+          PLIST="ios/App/App/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Add :NSAppTransportSecurity dict' "$PLIST" || true
+          /usr/libexec/PlistBuddy -c 'Add :NSAppTransportSecurity:NSAllowsArbitraryLoads bool false' "$PLIST" || true
+          /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes array' "$PLIST" || true
+          /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:0 string tel' "$PLIST" || true
+          /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:1 string mailto' "$PLIST" || true
+          /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:2 string whatsapp' "$PLIST" || true
+          /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:3 string vk' "$PLIST" || true
+
+      - name: Build .app (no code signing)
+        working-directory: ios/App
+        run: |
+          xcodebuild \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Create unsigned .ipa
+        run: |
+          APP_PATH="ios/App/build/Build/Products/Release-iphoneos/App.app"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r XPortStore-unsigned.ipa Payload
+          rm -rf Payload
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: XPortStore-unsigned-ipa
+          path: XPortStore-unsigned.ipa
+          retention-days: 14
