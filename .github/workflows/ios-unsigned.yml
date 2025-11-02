@@ -17,21 +17,21 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install deps
+      - name: Install deps (npm)
         run: npm i --no-audit --no-fund
 
-      - name: Generate iOS project and assets
+      - name: Generate iOS project and assets (Capacitor)
         run: |
           npx cap add ios
           npx @capacitor/assets generate --ios
           npx cap sync ios
 
-      # Capacitor v6 использует Swift Package Manager.
-      # Явно резолвим пакеты, чтобы Xcode видел модуль 'Capacitor'.
-      - name: Resolve Swift Packages
+      # === Критично: ставим CocoaPods и генерим workspace ===
+      - name: Install CocoaPods
         working-directory: ios/App
         run: |
-          xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App
+          pod repo update
+          pod install --verbose
 
       - name: Patch Info.plist (ATS + URL schemes)
         run: |
@@ -44,13 +44,15 @@ jobs:
           /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:2 string whatsapp' "$PLIST" || true
           /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:3 string vk' "$PLIST" || true
 
+      # === Собираем через .xcworkspace, иначе не увидит Pods (Capacitor) ===
       - name: Build .app (no code signing)
         working-directory: ios/App
         run: |
           xcodebuild \
-            -project App.xcodeproj \
+            -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
+            -sdk iphoneos \
             -destination "generic/platform=iOS" \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
