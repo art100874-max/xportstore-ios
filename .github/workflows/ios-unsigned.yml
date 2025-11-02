@@ -18,7 +18,7 @@ jobs:
           node-version: '20'
 
       - name: Install deps
-        run: npm ci
+        run: npm i --no-audit --no-fund
 
       - name: Generate iOS project and assets
         run: |
