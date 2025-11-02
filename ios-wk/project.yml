@@ -1,1 +1,28 @@
-
+name: XPortStore
+options:
+  deploymentTarget:
+    iOS: "13.0"
+  defaultConfig: Release
+configs:
+  Release: release
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: ru.xportstore.ios
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Manual
+    TARGETED_DEVICE_FAMILY: "1,2"
+    INFOPLIST_FILE: ios-wk/Info.plist
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+targets:
+  XPortStore:
+    type: application
+    platform: iOS
+    sources:
+      - path: ios-wk/Sources
+      - path: ios-wk/Assets.xcassets
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "13.0"
+    scheme:
+      testTargets: []
