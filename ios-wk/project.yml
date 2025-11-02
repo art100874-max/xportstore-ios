@@ -2,7 +2,6 @@ name: XPortStore
 options:
   deploymentTarget:
     iOS: "13.0"
-  defaultConfig: Release
 configs:
   Debug: debug
   Release: release
@@ -26,7 +25,3 @@ targets:
       base:
         SWIFT_VERSION: "5.0"
         IPHONEOS_DEPLOYMENT_TARGET: "13.0"
-    scheme:
-      configVariants:
-        - Debug
-        - Release
