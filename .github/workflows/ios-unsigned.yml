@@ -26,6 +26,12 @@ jobs:
           npx @capacitor/assets generate --ios
           npx cap sync ios
 
+      - name: Install CocoaPods
+        working-directory: ios/App
+        run: |
+          pod repo update
+          pod install
+
       - name: Patch Info.plist (ATS + URL schemes)
         run: |
           PLIST="ios/App/App/Info.plist"
