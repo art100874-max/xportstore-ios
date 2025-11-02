@@ -26,12 +26,22 @@ jobs:
           npx @capacitor/assets generate --ios
           npx cap sync ios
 
-      # === Критично: ставим CocoaPods и генерим workspace ===
-      - name: Install CocoaPods
+      # Capacitor v6 тянется через Swift Package Manager — явно резолвим пакеты
+      - name: Resolve Swift Packages (workspace)
         working-directory: ios/App
         run: |
-          pod repo update
-          pod install --verbose
+          xcodebuild -resolvePackageDependencies -workspace App.xcworkspace -scheme App
+
+      # На случай плагинов через CocoaPods (часто нужны при дальнейших доп. возможностях):
+      - name: (Optional) CocoaPods bootstrap
+        working-directory: ios/App
+        run: |
+          if [ -f Podfile ]; then
+            pod repo update
+            pod install --verbose
+          else
+            echo "No Podfile — skipping CocoaPods"
+          fi
 
       - name: Patch Info.plist (ATS + URL schemes)
         run: |
@@ -44,7 +54,7 @@ jobs:
           /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:2 string whatsapp' "$PLIST" || true
           /usr/libexec/PlistBuddy -c 'Add :LSApplicationQueriesSchemes:3 string vk' "$PLIST" || true
 
-      # === Собираем через .xcworkspace, иначе не увидит Pods (Capacitor) ===
+      # Сборка через workspace (Capacitor + SPM), релиз для устройства
       - name: Build .app (no code signing)
         working-directory: ios/App
         run: |
@@ -52,19 +62,22 @@ jobs:
             -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
-            -sdk iphoneos \
             -destination "generic/platform=iOS" \
+            -sdk iphoneos \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
-            build
+            build | xcpretty
+          du -sh build/Build/Products/Release-iphoneos/App.app || true
 
       - name: Create unsigned .ipa
         run: |
           APP_PATH="ios/App/build/Build/Products/Release-iphoneos/App.app"
+          test -d "$APP_PATH"
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
-          zip -r XPortStore-unsigned.ipa Payload
+          zip -r XPortStore-unsigned.ipa Payload >/dev/null
           rm -rf Payload
+          du -h XPortStore-unsigned.ipa || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
